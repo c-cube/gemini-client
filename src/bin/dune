@@ -1,0 +1,5 @@
+
+(executable
+  (name gemget)
+  (public_name gemget)
+  (libraries gemini_client))
