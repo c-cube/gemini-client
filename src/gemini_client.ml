@@ -97,7 +97,7 @@ let getopt f = function
   | None -> f()
   | Some x -> x
 
-let get (url:Uri.t) : (code * string * string, code * string) result =
+let rec get ?(max_redirects=10) (url:Uri.t) : (code * string * string, code * string) result =
   try
     let host =
       Uri.host url |> getopt (fun () -> failwith "host is required")
@@ -147,7 +147,7 @@ let get (url:Uri.t) : (code * string * string, code * string) result =
           with Not_found -> String.index line '\t'
         in
         int_of_string (String.sub line 0 i),
-        String.sub line (i+1) (String.length line-i-1)
+        String.trim @@ String.sub line (i+1) (String.length line-i-1)
       with _ ->
         Ssl.shutdown_connection sock;
         failwith @@ spf "invalid header line %S" line
@@ -156,6 +156,14 @@ let get (url:Uri.t) : (code * string * string, code * string) result =
       let body = ic#read_all in
       Ssl.shutdown_connection sock;
       Ok (code, meta, body)
+    ) else if code >= 30 && code < 40 then (
+      if max_redirects > 0 then (
+        let url' = Uri.of_string meta in
+        Printf.eprintf "redirect (code %d) to %S\n%!" code (Uri.to_string url');
+        get ~max_redirects:(max_redirects-1) url'
+      ) else (
+        Error (code, spf "max number of redirects reached (redirect to %s)" meta)
+      )
     ) else (
       Ssl.shutdown_connection sock;
       Error (code, meta)
