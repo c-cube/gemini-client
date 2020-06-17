@@ -3,4 +3,4 @@
   (name gemini_client)
   (public_name gemini_client)
   (flags :standard -warn-error -a+8)
-  (libraries containers uri ssl))
+  (libraries uri ssl))

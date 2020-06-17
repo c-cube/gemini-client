@@ -93,12 +93,16 @@ module In = struct
   end
 end
 
+let getopt f = function
+  | None -> f()
+  | Some x -> x
+
 let get (url:Uri.t) : (code * string * string, code * string) result =
   try
     let host =
-      Uri.host url |> CCOpt.get_lazy (fun () -> failwith "host is required")
+      Uri.host url |> getopt (fun () -> failwith "host is required")
     and port =
-      Uri.port url |> CCOpt.get_or ~default:1965
+      Uri.port url |> getopt (fun () -> 1965)
     in
     (* resolve *)
     let ip_addr = match Unix.getaddrinfo host "" [] with
