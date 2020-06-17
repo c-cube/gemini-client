@@ -97,6 +97,13 @@ let getopt f = function
   | None -> f()
   | Some x -> x
 
+let rec find_map f = function
+  | [] -> raise Not_found
+  | x :: tl ->
+    match f x with
+    | Some y -> y
+    | None -> find_map f tl
+
 let rec get ?(max_redirects=10) (url:Uri.t) : (code * string * string, code * string) result =
   try
     let host =
@@ -105,9 +112,15 @@ let rec get ?(max_redirects=10) (url:Uri.t) : (code * string * string, code * st
       Uri.port url |> getopt (fun () -> 1965)
     in
     (* resolve *)
-    let ip_addr = match Unix.getaddrinfo host "" [] with
-      | {Unix.ai_addr=Unix.ADDR_INET (ip,_);_} :: _ -> ip
-      | _ -> failwith "cannot resolve address"
+    let ip_addr =
+      try
+        Unix.getaddrinfo host "" []
+        |> find_map
+          (function
+            | {Unix.ai_addr=Unix.ADDR_INET (ip,_);ai_family=PF_INET;_} -> Some ip
+            | _ -> None)
+      with Not_found ->
+        failwith "cannot resolve address"
     in
 
     let ssl_ctx = Ssl.create_context Ssl.TLSv1_3 Ssl.Client_context in
