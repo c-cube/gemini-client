@@ -76,7 +76,7 @@ module In = struct
         len <- Ssl.read sock buf 0 (Bytes.length buf);
         Printf.eprintf "read %d bytes\n%!" len;
         if len = 0 then closed <- true
-      with e ->
+      with _ ->
         Printf.eprintf "ssl err: %s\n%!" (Ssl.get_error_string());
         closed <- true
     method close = Ssl.shutdown_connection sock
