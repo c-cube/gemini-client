@@ -6,7 +6,7 @@ license: "MIT"
 depends: [
   "dune" {>= "2.0"}
   "uri"
-  "ssl"
+  "ssl" {>= "0.5.9"}
 ]
 build: [
   ["dune" "subst"] {pinned}

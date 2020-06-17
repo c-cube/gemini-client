@@ -8,4 +8,4 @@
 (package
   (name gemini_client)
   (synopsis "gemini client")
-  (depends uri ssl))
+  (depends uri (ssl (>= "0.5.9"))))
